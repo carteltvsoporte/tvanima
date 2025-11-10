@@ -1,514 +1,65 @@
 <!DOCTYPE html>
-<html lang="es" class="no-js">
+<html lang="es" class="no-js supports-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#161a25">
   <title>Cartel Anime</title>
-
-  <!-- ✅ Favicon SVG inline -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231a1a2e'/><path d='M20,30 L50,70 L80,30 Z' fill='%238a2be2'/><circle cx='50' cy='50' r='8' fill='%23ff75c3'/></svg>">
-
-  <style>
-    :root {
-      --bg: #0d0d1a;
-      --surface: #161a25;
-      --surface-variant: #1e2235;
-      --on-surface: #e0e0ff;
-      --on-surface-dim: #a0a5c5;
-      --primary: #8a2be2;
-      --primary-light: #a067ff;
-      --error: #ff6b81;
-      --radius: 12px;
-      --transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      color-scheme: dark;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--on-surface);
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      min-height: 100vh;
-      padding: 1.5rem;
-    }
-
-    .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; clip: rect(1px,1px,1px,1px) !important; }
-
-    /* === Modal de acceso === */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 1;
-      transition: opacity 0.3s;
-    }
-
-    .modal {
-      background: var(--surface);
-      border-radius: var(--radius);
-      width: 95%;
-      max-width: 400px;
-      padding: 2rem;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-      text-align: center;
-      transform: scale(1);
-      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .modal.hidden {
-      opacity: 0;
-      pointer-events: none;
-      transform: scale(0.95);
-    }
-
-    .logo {
-      width: 64px;
-      height: 64px;
-      margin: 0 auto 1.2rem;
-    }
-
-    .logo svg { width: 100%; height: 100%; }
-
-    .modal h2 {
-      font-weight: 700;
-      font-size: 1.6rem;
-      margin: 0 0 1rem;
-      background: linear-gradient(90deg, #ff75c3, #a067ff);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .input-group {
-      margin: 1.2rem 0;
-    }
-
-    .input-group label {
-      display: block;
-      text-align: left;
-      font-size: 0.9rem;
-      margin-bottom: 0.4rem;
-      color: var(--on-surface-dim);
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 0.75rem;
-      border: 2px solid var(--surface-variant);
-      border-radius: var(--radius);
-      background: var(--surface-variant);
-      color: var(--on-surface);
-      font-size: 1rem;
-      transition: border-color 0.3s;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    .btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.8rem 1.5rem;
-      border-radius: var(--radius);
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity var(--transition);
-      width: 100%;
-    }
-
-    .btn:hover:not(:disabled) { opacity: 0.9; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .error-msg {
-      color: var(--error);
-      font-size: 0.85rem;
-      margin-top: 0.5rem;
-      min-height: 1.2rem;
-    }
-
-    /* === Header === */
-    header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .platform-title {
-      font-weight: 800;
-      font-size: clamp(2rem, 5vw, 3rem);
-      background: linear-gradient(90deg, #ff75c3, #a067ff);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      margin: 0;
-    }
-
-    /* === Categorías === */
-    .categories {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 2rem;
-      padding: 0.75rem;
-      background: var(--surface);
-      border-radius: var(--radius);
-    }
-
-    .category {
-      background: var(--surface-variant);
-      color: var(--on-surface-dim);
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 50px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .category.active,
-    .category:hover {
-      background: var(--primary);
-      color: white;
-    }
-
-    /* === Grid === */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 1.5rem;
-    }
-
-    /* === Tarjetas (igual que antes, optimizadas) === */
-    .card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-      transition: transform 0.3s;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    @media (prefers-reduced-motion: no-preference) {
-      .card:hover { transform: translateY(-6px); }
-    }
-
-    .cover {
-      aspect-ratio: 3/4;
-      background-size: cover;
-      background-position: center;
-      position: relative;
-    }
-
-    .cover::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.75), transparent 70%);
-    }
-
-    .score-badge {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(6px);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: grid;
-      place-content: center;
-      font-weight: 700;
-      font-size: 0.85rem;
-      z-index: 2;
-    }
-
-    .content {
-      padding: 1.2rem;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .card-title {
-      font-weight: 700;
-      font-size: 1.2rem;
-      margin: 0 0 0.5rem;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-
-    .meta {
-      font-size: 0.85rem;
-      color: var(--on-surface-dim);
-      margin: 0 0 1rem;
-    }
-
-    .genres {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.3rem;
-      margin-top: auto;
-    }
-
-    .genre {
-      background: rgba(138, 43, 226, 0.15);
-      color: #d0b0ff;
-      padding: 0.2rem 0.6rem;
-      border-radius: 20px;
-      font-size: 0.7rem;
-    }
-
-    .skeleton {
-      background: linear-gradient(90deg, var(--surface), var(--surface-variant), var(--surface));
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: var(--radius);
-    }
-
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-
-    .skeleton-card { height: 440px; }
-  </style>
+  
+  <!-- Favicon SVG embebido -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23161a25' rx='12'/%3E%3Cpath d='M25,35 L50,65 L75,35 Z' fill='%238a2be2'/%3E%3Ccircle cx='50' cy='50' r='7' fill='%23ff75c3'/%3E%3C/svg%3E">
+  
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- ✅ Modal de acceso -->
-  <div id="authModal" class="modal-overlay" aria-modal="true" role="dialog" aria-labelledby="modal-title">
+  <!-- Modal de acceso mejorado -->
+  <div id="authModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc">
     <div class="modal" tabindex="-1">
-      <div class="logo">
+      <div class="logo" aria-hidden="true">
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <rect width="100" height="100" fill="#161a25" rx="12"/>
-          <path d="M25,35 L50,65 L75,35 Z" fill="#8a2be2"/>
-          <circle cx="50" cy="50" r="7" fill="#ff75c3"/>
+          <rect width="100" height="100" fill="currentColor" rx="12" />
+          <path d="M25,35 L50,65 L75,35 Z" fill="#8a2be2" />
+          <circle cx="50" cy="50" r="7" fill="#ff75c3" />
         </svg>
       </div>
       <h2 id="modal-title">Cartel Anime</h2>
-      <p>Ingresa la clave de acceso para continuar.</p>
+      <p id="modal-desc">Ingresa la clave de acceso para acceder a la plataforma.</p>
+
+      <form id="authForm" novalidate>
+        <div class="input-group">
+          <label for="accessKey">Clave de acceso</label>
+          <input type="password" id="accessKey" autocomplete="off" spellcheck="false" inputmode="text" 
+                 aria-invalid="false" aria-describedby="feedback" required>
+          <div id="feedback" class="error-msg" role="alert" aria-live="polite"></div>
+        </div>
+
+        <button id="submitBtn" class="btn" type="submit">
+          <span class="btn-text">Acceder</span>
+          <span class="btn-loader hidden" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C13.3132 2 14.6136 2.25866 15.8268 2.7612C17.0401 3.26375 18.1425 4.00035 19.0711 4.92893C19.9997 5.85752 20.7362 6.95991 21.2388 8.17317C21.7413 9.38642 22 10.6868 22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+        </button>
+      </form>
       
-      <div class="input-group">
-        <label for="accessKey">Clave de acceso</label>
-        <input type="password" id="accessKey" autocomplete="off" autofocus>
-        <div id="errorMsg" class="error-msg" role="alert" aria-live="polite"></div>
+      <div class="modal-footer">
+        <p class="attempts-info" id="attemptsInfo"></p>
       </div>
-      
-      <button id="submitBtn" class="btn">Acceder</button>
     </div>
   </div>
 
-  <!-- ✅ Contenido principal (inicialmente oculto) -->
-  <main id="app" hidden>
-    <header>
+  <!-- App principal -->
+  <main id="app" class="hidden">
+    <header class="app-header">
       <h1 class="platform-title">Cartel Anime</h1>
     </header>
 
-    <nav class="categories" id="categoryNav" role="tablist" aria-label="Categorías de anime">
-      <!-- Categorías dinámicas -->
-    </nav>
+    <nav class="categories" id="categoryNav" role="tablist" aria-label="Categorías de contenido"></nav>
 
-    <ul id="animeGrid" class="grid" role="list" aria-label="Animes por categoría"></ul>
+    <ul id="animeGrid" class="grid" role="list" aria-label="Lista de animes"></ul>
   </main>
 
-  <script>
-    (function() {
-      'use strict';
-
-      const ACCESS_KEY = 'Cartel Anime';
-      const $modal = document.getElementById('authModal');
-      const $keyInput = document.getElementById('accessKey');
-      const $submitBtn = document.getElementById('submitBtn');
-      const $errorMsg = document.getElementById('errorMsg');
-      const $app = document.getElementById('app');
-      const $categoryNav = document.getElementById('categoryNav');
-      const $grid = document.getElementById('animeGrid');
-
-      const CATEGORIES = [
-        { id: 'TRENDING', label: 'Tendencia', sort: 'TRENDING_DESC' },
-        { id: 'POPULAR', label: 'Populares', sort: 'POPULARITY_DESC' },
-        { id: 'RATING', label: 'Mejor valorados', sort: 'SCORE_DESC' },
-        { id: 'UPCOMING', label: 'Próximos', sort: 'POPULARITY_DESC', status: 'NOT_YET_RELEASED' },
-        { id: 'AIRING', label: 'En emisión', sort: 'POPULARITY_DESC', status: 'RELEASING' }
-      ];
-
-      let currentCategory = 'TRENDING';
-      let cache = {};
-
-      // ✅ SVG logo inline (reutilizable)
-      const LOGO_SVG = `
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:28px;vertical-align:middle;margin-right:8px">
-          <rect width="100" height="100" fill="currentColor" rx="8"/>
-          <path d="M25,35 L50,65 L75,35 Z" fill="#8a2be2"/>
-          <circle cx="50" cy="50" r="7" fill="#ff75c3"/>
-        </svg>
-      `;
-
-      // ✅ Verificar acceso
-      const checkAccess = () => {
-        const saved = sessionStorage.getItem('cartel_access');
-        if (saved === btoa(ACCESS_KEY)) {
-          $modal.classList.add('hidden');
-          $app.hidden = false;
-          initApp();
-          return true;
-        }
-        return false;
-      };
-
-      // ✅ Validar y guardar acceso
-      const validateKey = () => {
-        const key = $keyInput.value.trim();
-        if (key === ACCESS_KEY) {
-          sessionStorage.setItem('cartel_access', btoa(key));
-          $modal.classList.add('hidden');
-          $app.hidden = false;
-          initApp();
-        } else {
-          $errorMsg.textContent = 'Clave incorrecta';
-          $keyInput.select();
-        }
-      };
-
-      // ✅ Cargar categorías
-      const renderCategories = () => {
-        $categoryNav.innerHTML = CATEGORIES.map(cat => `
-          <button
-            class="category${cat.id === currentCategory ? ' active' : ''}"
-            data-id="${cat.id}"
-            role="tab"
-            aria-selected="${cat.id === currentCategory}"
-          >
-            ${cat.label}
-          </button>
-        `).join('');
-      };
-
-      // ✅ Query GraphQL optimizada por categoría
-      const buildQuery = (category) => {
-        const cat = CATEGORIES.find(c => c.id === category);
-        const filters = cat.status ? `, status: ${cat.status}` : '';
-        return `
-          query {
-            Page(page: 1, perPage: 12) {
-              media(sort: ${cat.sort}, type: ANIME${filters}) {
-                id
-                title { romaji }
-                coverImage { large }
-                averageScore
-                status
-                genres
-              }
-            }
-          }
-        `;
-      };
-
-      // ✅ Render skeleton
-      const renderSkeleton = () => {
-        $grid.innerHTML = Array(6).fill().map(() => `
-          <li class="skeleton-card skeleton" aria-hidden="true"></li>
-        `).join('');
-      };
-
-      // ✅ Render animes
-      const renderAnimes = (animes) => {
-        $grid.innerHTML = animes.map(a => {
-          const score = a.averageScore ? (a.averageScore / 10).toFixed(1) : '—';
-          const genres = a.genres.slice(0, 3).map(g => `<span class="genre">${g}</span>`).join('');
-          const title = a.title.romaji.replace(/[<>&"]/g, m => `&#${m.charCodeAt(0)};`);
-          return `
-            <li class="card" role="article" aria-label="${title}, puntaje: ${score}">
-              <div class="cover" style="background-image:url('${a.coverImage.large || ''}')">
-                <div class="score-badge">${score}</div>
-              </div>
-              <div class="content">
-                <h3 class="card-title">${title}</h3>
-                <p class="meta">${a.status?.replace(/_/g, ' ').toLowerCase()}</p>
-                <div class="genres">${genres}</div>
-              </div>
-            </li>`;
-        }).join('');
-      };
-
-      // ✅ Fetch con caché
-      const fetchAnimes = async (category) => {
-        if (cache[category]) {
-          renderAnimes(cache[category]);
-          return;
-        }
-
-        renderSkeleton();
-        try {
-          const res = await fetch('https://graphql.anilist.co', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: buildQuery(category) })
-          });
-
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-          const animes = data.data?.Page?.media || [];
-
-          cache[category] = animes;
-          renderAnimes(animes);
-        } catch (e) {
-          $grid.innerHTML = `<li class="card" style="grid-column:1/-1;text-align:center;padding:2rem;color:#ff6b81">Error al cargar los animes</li>`;
-        }
-      };
-
-      // ✅ Cambiar categoría
-      const switchCategory = (id) => {
-        if (currentCategory === id) return;
-        currentCategory = id;
-        document.querySelectorAll('.category').forEach(btn => {
-          const isActive = btn.dataset.id === id;
-          btn.classList.toggle('active', isActive);
-          btn.setAttribute('aria-selected', isActive);
-        });
-        fetchAnimes(id);
-      };
-
-      // ✅ Inicializar app
-      const initApp = () => {
-        renderCategories();
-        fetchAnimes(currentCategory);
-
-        $categoryNav.addEventListener('click', e => {
-          const btn = e.target.closest('.category');
-          if (btn) switchCategory(btn.dataset.id);
-        });
-
-        // Teclas rápidas
-        document.addEventListener('keydown', e => {
-          if (e.key === 'Escape' && !$modal.classList.contains('hidden')) {
-            $keyInput.value = '';
-            $errorMsg.textContent = '';
-          }
-        });
-      };
-
-      // ✅ Eventos modal
-      $submitBtn.addEventListener('click', validateKey);
-      $keyInput.addEventListener('keypress', e => e.key === 'Enter' && validateKey());
-
-      // ✅ Al cargar
-      if (!checkAccess()) {
-        $keyInput.addEventListener('input', () => $errorMsg.textContent = '');
-      }
-    })();
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
