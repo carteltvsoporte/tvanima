@@ -1,64 +1,223 @@
 <!DOCTYPE html>
-<html lang="es" class="no-js supports-js">
+<html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#161a25">
-  <title>Cartel Anime</title>
-  
-  <!-- Favicon SVG embebido -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23161a25' rx='12'/%3E%3Cpath d='M25,35 L50,65 L75,35 Z' fill='%238a2be2'/%3E%3Ccircle cx='50' cy='50' r='7' fill='%23ff75c3'/%3E%3C/svg%3E">
-  
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TV ANIMA</title>
+  <meta name="description" content="Descubre anime organizado por categorías y géneros" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="https://github.com/carteltvsoporte/tvanima/raw/refs/heads/main/TV.jpeg" type="image/jpeg">
 </head>
 <body>
-  <!-- Modal de acceso mejorado -->
-  <div id="authModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc">
-    <div class="modal" tabindex="-1">
-      <div class="logo" aria-hidden="true">
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <rect width="100" height="100" fill="currentColor" rx="12" />
-          <path d="M25,35 L50,65 L75,35 Z" fill="#8a2be2" />
-          <circle cx="50" cy="50" r="7" fill="#ff75c3" />
-        </svg>
-      </div>
-      <h2 id="modal-title">Cartel Anime</h2>
-      <p id="modal-desc">Ingresa la clave de acceso para acceder a la plataforma.</p>
-
-      <form id="authForm" novalidate>
-        <div class="input-group">
-          <label for="accessKey">Clave de acceso</label>
-          <input type="password" id="accessKey" autocomplete="off" spellcheck="false" inputmode="text" 
-                 aria-invalid="false" aria-describedby="feedback" required>
-          <div id="feedback" class="error-msg" role="alert" aria-live="polite"></div>
-        </div>
-
-        <button id="submitBtn" class="btn" type="submit">
-          <span class="btn-text">Acceder</span>
-          <span class="btn-loader hidden" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2C13.3132 2 14.6136 2.25866 15.8268 2.7612C17.0401 3.26375 18.1425 4.00035 19.0711 4.92893C19.9997 5.85752 20.7362 6.95991 21.2388 8.17317C21.7413 9.38642 22 10.6868 22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </span>
-        </button>
-      </form>
-      
-      <div class="modal-footer">
-        <p class="attempts-info" id="attemptsInfo"></p>
-      </div>
+  <div id="access-modal" class="modal">
+    <div class="modal-content">
+      <h2>Acceso TV ANIMA</h2>
+      <p>Ingrese la clave de acceso para continuar:</p>
+      <input type="password" id="access-code" placeholder="Clave de acceso" />
+      <button id="submit-code">Acceder</button>
+      <p id="error-message" class="error hidden">Clave incorrecta. Intente nuevamente.</p>
     </div>
   </div>
 
-  <!-- App principal -->
-  <main id="app" class="hidden">
-    <header class="app-header">
-      <h1 class="platform-title">Cartel Anime</h1>
-    </header>
+  <div id="notification" class="notification hidden">
+    <span id="notification-text"></span>
+    <button id="notification-close" class="notification-close">×</button>
+  </div>
 
-    <nav class="categories" id="categoryNav" role="tablist" aria-label="Categorías de contenido"></nav>
+  <div class="container">
+    <div id="main-app" class="main-app hidden">
+      
+      <header class="app-header">
+        <div class="header-content">
+          <div class="header-left">
+            <button id="menu-btn" class="menu-btn">
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+            <div class="logo">
+              <img src="https://github.com/carteltvsoporte/tvanima/raw/refs/heads/main/TV.jpeg" alt="TV ANIMA" class="logo-img">
+              <span class="logo-text">TV ANIMA</span>
+            </div>
+          </div>
+          
+          <div class="header-actions">
+            <button id="theme-toggle" class="theme-toggle">
+              <span class="theme-icon">🌸</span>
+            </button>
+          </div>
+        </div>
+      </header>
 
-    <ul id="animeGrid" class="grid" role="list" aria-label="Lista de animes"></ul>
-  </main>
+      <nav id="side-menu" class="side-menu">
+        <div class="menu-header">
+          <h3>Navegación</h3>
+          <button id="close-menu" class="close-menu">×</button>
+        </div>
+        <div class="menu-items">
+          <a href="#" class="menu-item active" data-section="discover">🔍 Descubrir</a>
+          <a href="#" class="menu-item" data-section="favorites">❤️ Favoritos</a>
+          <a href="#" class="menu-item" data-section="watchlist">📝 Por Ver</a>
+          <a href="#" class="menu-item" data-section="history">🕒 Historial</a>
+          <a href="#" class="menu-item" data-section="settings">⚙️ Configuración</a>
+        </div>
+        <div class="menu-footer">
+          <div class="user-stats">
+            <div class="stat">
+              <span class="stat-number" id="fav-count">0</span>
+              <span class="stat-label">Favoritos</span>
+            </div>
+            <div class="stat">
+              <span class="stat-number" id="watch-count">0</span>
+              <span class="stat-label">Por Ver</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div class="content-sections">
+        
+        <section id="discover" class="content-section active">
+          <div class="filters-container">
+            <div class="filters-header">
+              <h2>CATEGORÍAS DE ANIME</h2>
+            </div>
+            
+            <div class="categories">
+              <div class="category-section">
+                <h3 class="category-title">🎌 Géneros Populares</h3>
+                <div class="filters">
+                  <button class="filter-btn active" data-type="shonen">Shonen</button>
+                  <button class="filter-btn" data-type="shojo">Shojo</button>
+                  <button class="filter-btn" data-type="seinen">Seinen</button>
+                  <button class="filter-btn" data-type="josei">Josei</button>
+                  <button class="filter-btn" data-type="kodomomuke">Kodomomuke</button>
+                </div>
+              </div>
+
+              <div class="category-section">
+                <h3 class="category-title">🎭 Temáticas</h3>
+                <div class="filters">
+                  <button class="filter-btn" data-type="isekai">Isekai</button>
+                  <button class="filter-btn" data-type="mecha">Mecha</button>
+                  <button class="filter-btn" data-type="slice_of_life">Slice of Life</button>
+                  <button class="filter-btn" data-type="fantasy">Fantasía</button>
+                  <button class="filter-btn" data-type="sci_fi">Ciencia Ficción</button>
+                  <button class="filter-btn" data-type="romance">Romance</button>
+                  <button class="filter-btn" data-type="comedy">Comedia</button>
+                  <button class="filter-btn" data-type="horror">Horror</button>
+                </div>
+              </div>
+
+              <div class="category-section">
+                <h3 class="category-title">📅 Estado</h3>
+                <div class="filters">
+                  <button class="filter-btn" data-type="airing">En Emisión</button>
+                  <button class="filter-btn" data-type="upcoming">Próximamente</button>
+                  <button class="filter-btn" data-type="top_rated">Mejor Valorados</button>
+                  <button class="filter-btn" data-type="popular">Populares</button>
+                  <button class="filter-btn" data-type="classics">Clásicos</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button id="load-btn" class="action-btn">
+            <span class="btn-icon">🎬</span>
+            <span class="btn-text">Descubrir Anime</span>
+          </button>
+
+          <div id="loading" class="loading hidden">
+            <div class="loading-spinner"></div>
+            <span class="loading-message">Buscando en el mundo del anime...</span>
+          </div>
+
+          <div id="anime-container" class="anime-card">
+            <div class="welcome-message">
+              <div class="welcome-icon">🌸</div>
+              <h3>Bienvenido a TV ANIMA</h3>
+              <p>Selecciona una categoría y haz clic en "Descubrir Anime" para explorar</p>
+            </div>
+          </div>
+
+          <div class="content-actions">
+            <button id="favorite-btn" class="content-action-btn favorite-btn">❤️ Favorito</button>
+            <button id="watchlist-btn" class="content-action-btn watchlist-btn">📝 Por Ver</button>
+          </div>
+        </section>
+
+        <section id="favorites" class="content-section">
+          <div class="section-header">
+            <h2>Mis Animes Favoritos</h2>
+            <p>Tu colección personal de anime destacado</p>
+          </div>
+          <div id="favorites-grid" class="content-grid"></div>
+        </section>
+
+        <section id="watchlist" class="content-section">
+          <div class="section-header">
+            <h2>Mi Lista por Ver</h2>
+            <p>Anime guardado para ver más tarde</p>
+          </div>
+          <div id="watchlist-grid" class="content-grid"></div>
+        </section>
+
+        <section id="history" class="content-section">
+          <div class="section-header">
+            <h2>Historial</h2>
+            <p>Tu actividad reciente en TV ANIMA</p>
+          </div>
+          <div id="history-list" class="history-list"></div>
+        </section>
+
+        <section id="settings" class="content-section">
+          <div class="section-header">
+            <h2>Configuración</h2>
+            <p>Personaliza tu experiencia anime</p>
+          </div>
+          <div class="settings-grid">
+            <div class="setting-card">
+              <h3>🎨 Tema</h3>
+              <div class="setting-options">
+                <label class="setting-option">
+                  <input type="radio" name="theme" value="sakura" checked>
+                  <span class="option-label">Sakura</span>
+                </label>
+                <label class="setting-option">
+                  <input type="radio" name="theme" value="midnight">
+                  <span class="option-label">Medianoche</span>
+                </label>
+              </div>
+            </div>
+            
+            <div class="setting-card">
+              <h3>⚡ Calidad</h3>
+              <div class="setting-options">
+                <label class="setting-option">
+                  <select id="content-quality">
+                    <option value="high">Alta calidad</option>
+                    <option value="balanced" selected>Equilibrado</option>
+                    <option value="data">Modo ahorro</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-card">
+              <h3>📺 Fuentes</h3>
+              <div class="setting-options">
+                <label class="setting-option toggle-option">
+                  <input type="checkbox" id="anilist-toggle" checked>
+                  <span class="toggle-slider"></span>
+                  <span class="option-label">Mas contenido</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
