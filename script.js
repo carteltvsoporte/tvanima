@@ -4,9 +4,21 @@ const CONFIG = {
   IMG_BASE_URL: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/',
   MAX_RETRIES: 3,
   INITIAL_DELAY: 1000,
-  CACHE_DURATION: 15 * 60 * 1000,
-  ACCESS_CODE: 'ANIME2025'
+  CACHE_DURATION: 15 * 60 * 1000
 };
+
+const AUTHORIZED_USERS = [
+  { name: "sakura", phone: "1234567890", password: "anime2025" },
+  { name: "naruto", phone: "2345678901", password: "hokage123" },
+  { name: "goku", phone: "3456789012", password: "kamehameha" },
+  { name: "luffy", phone: "4567890123", password: "onepiece" },
+  { name: "saitama", phone: "5678901234", password: "onepunch" },
+  { name: "levi", phone: "6789012345", password: "cleanfreak" },
+  { name: "nezuko", phone: "7890123456", password: "demonslayer" },
+  { name: "yor", phone: "8901234567", password: "assassin" },
+  { name: "gojo", phone: "9012345678", password: "infinity" },
+  { name: "mai", phone: "0123456789", password: "sakurajima" }
+];
 
 const State = {
   currentType: 'shonen',
@@ -28,6 +40,8 @@ const State = {
 
 function setupAccessModal() {
   const accessModal = document.getElementById('access-modal');
+  const userNameInput = document.getElementById('user-name');
+  const userPhoneInput = document.getElementById('user-phone');
   const accessCodeInput = document.getElementById('access-code');
   const submitButton = document.getElementById('submit-code');
   const errorMessage = document.getElementById('error-message');
@@ -40,24 +54,37 @@ function setupAccessModal() {
   }
   
   submitButton.addEventListener('click', () => {
-    const enteredCode = accessCodeInput.value.trim();
+    const enteredName = userNameInput.value.trim().toLowerCase();
+    const enteredPhone = userPhoneInput.value.trim();
+    const enteredPassword = accessCodeInput.value.trim();
     
-    if (enteredCode === CONFIG.ACCESS_CODE) {
+    const isValidUser = AUTHORIZED_USERS.some(user => 
+      user.name === enteredName && 
+      user.phone === enteredPhone && 
+      user.password === enteredPassword
+    );
+    
+    if (isValidUser) {
       localStorage.setItem('anima_access_granted', 'true');
+      localStorage.setItem('anima_current_user', enteredName);
       accessModal.classList.add('hidden');
       document.getElementById('main-app').classList.remove('hidden');
-      showNotification('¡Bienvenido a TV ANIMA!');
+      showNotification(`¡Bienvenido/a ${enteredName} a TV ANIMA!`);
     } else {
       errorMessage.classList.remove('hidden');
+      userNameInput.value = '';
+      userPhoneInput.value = '';
       accessCodeInput.value = '';
-      accessCodeInput.focus();
+      userNameInput.focus();
     }
   });
   
-  accessCodeInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      submitButton.click();
-    }
+  [userNameInput, userPhoneInput, accessCodeInput].forEach(input => {
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        submitButton.click();
+      }
+    });
   });
 }
 

@@ -12,10 +12,22 @@
   <div id="access-modal" class="modal">
     <div class="modal-content">
       <h2>Acceso TV ANIMA</h2>
-      <p>Ingrese la clave de acceso para continuar:</p>
-      <input type="password" id="access-code" placeholder="Clave de acceso" />
+      <p>Ingrese sus credenciales para continuar:</p>
+      
+      <div class="form-group">
+        <input type="text" id="user-name" placeholder="Nombre de usuario" />
+      </div>
+      
+      <div class="form-group">
+        <input type="tel" id="user-phone" placeholder="Número móvil" />
+      </div>
+      
+      <div class="form-group">
+        <input type="password" id="access-code" placeholder="Contraseña" />
+      </div>
+      
       <button id="submit-code">Acceder</button>
-      <p id="error-message" class="error hidden">Clave incorrecta. Intente nuevamente.</p>
+      <p id="error-message" class="error hidden">Credenciales incorrectas. Intente nuevamente.</p>
     </div>
   </div>
 
