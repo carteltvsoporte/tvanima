@@ -604,6 +604,100 @@ async function fetchAnimeByStatus(status, sort = "POPULARITY_DESC") {
   return data.Page.media;
 }
 
+async function fetchAnimeByFormat(format, sort = "POPULARITY_DESC") {
+  const query = `
+    query ($format: MediaFormat, $sort: [MediaSort]) {
+      Page(page: 1, perPage: 50) {
+        media(type: ANIME, format: $format, sort: $sort) {
+          id
+          title {
+            romaji
+            english
+            native
+          }
+          description
+          startDate {
+            year
+            month
+            day
+          }
+          endDate {
+            year
+            month
+            day
+          }
+          coverImage {
+            large
+            medium
+          }
+          bannerImage
+          episodes
+          genres
+          averageScore
+          popularity
+          status
+          format
+        }
+      }
+    }
+  `;
+  
+  const variables = {
+    format: format,
+    sort: sort
+  };
+  
+  const data = await fetchWithRetry(query, variables);
+  return data.Page.media;
+}
+
+async function fetchAnimeByYear(year, sort = "POPULARITY_DESC") {
+  const query = `
+    query ($year: Int, $sort: [MediaSort]) {
+      Page(page: 1, perPage: 50) {
+        media(type: ANIME, startDate_greater: $year, startDate_lesser: ${year + 10}, sort: $sort) {
+          id
+          title {
+            romaji
+            english
+            native
+          }
+          description
+          startDate {
+            year
+            month
+            day
+          }
+          endDate {
+            year
+            month
+            day
+          }
+          coverImage {
+            large
+            medium
+          }
+          bannerImage
+          episodes
+          genres
+          averageScore
+          popularity
+          status
+          format
+        }
+      }
+    }
+  `;
+  
+  const variables = {
+    year: year,
+    sort: sort
+  };
+  
+  const data = await fetchWithRetry(query, variables);
+  return data.Page.media;
+}
+
 async function fetchTrendingAnime() {
   const query = `
     query {
@@ -730,6 +824,53 @@ async function fetchTopRatedAnime() {
   return data.Page.media;
 }
 
+async function fetchAnimeBySeason(year, season) {
+  const query = `
+    query ($year: Int, $season: MediaSeason) {
+      Page(page: 1, perPage: 50) {
+        media(type: ANIME, season: $season, seasonYear: $year, sort: POPULARITY_DESC) {
+          id
+          title {
+            romaji
+            english
+            native
+          }
+          description
+          startDate {
+            year
+            month
+            day
+          }
+          endDate {
+            year
+            month
+            day
+          }
+          coverImage {
+            large
+            medium
+          }
+          bannerImage
+          episodes
+          genres
+          averageScore
+          popularity
+          status
+          format
+        }
+      }
+    }
+  `;
+  
+  const variables = {
+    year: year,
+    season: season
+  };
+  
+  const data = await fetchWithRetry(query, variables);
+  return data.Page.media;
+}
+
 async function fetchContentByType(type) {
   const now = Date.now();
   const cacheValid = State.cache[type]?.length > 0 && now < State.cacheExpiry[type];
@@ -742,80 +883,167 @@ async function fetchContentByType(type) {
 
   try {
     switch (type) {
+      // DEMOGRÁFICOS
       case 'shonen':
         rawData = await fetchAnimeByGenre("Action", "POPULARITY_DESC");
         break;
-        
       case 'shojo':
         rawData = await fetchAnimeByGenre("Romance", "POPULARITY_DESC");
         break;
-        
       case 'seinen':
         rawData = await fetchAnimeByGenre("Drama", "POPULARITY_DESC");
         break;
-        
       case 'josei':
         rawData = await fetchAnimeByGenre("Slice of Life", "POPULARITY_DESC");
         break;
-        
       case 'kodomomuke':
         rawData = await fetchAnimeByGenre("Comedy", "POPULARITY_DESC");
         break;
 
-      case 'isekai':
+      // GÉNEROS PRINCIPALES
+      case 'action':
+        rawData = await fetchAnimeByGenre("Action", "POPULARITY_DESC");
+        break;
+      case 'adventure':
         rawData = await fetchAnimeByGenre("Adventure", "POPULARITY_DESC");
         break;
-        
-      case 'mecha':
-        rawData = await fetchAnimeByGenre("Mecha", "POPULARITY_DESC");
-        break;
-        
-      case 'slice_of_life':
-        rawData = await fetchAnimeByGenre("Slice of Life", "POPULARITY_DESC");
-        break;
-        
       case 'fantasy':
         rawData = await fetchAnimeByGenre("Fantasy", "POPULARITY_DESC");
         break;
-        
       case 'sci_fi':
         rawData = await fetchAnimeByGenre("Sci-Fi", "POPULARITY_DESC");
         break;
-        
       case 'romance':
         rawData = await fetchAnimeByGenre("Romance", "POPULARITY_DESC");
         break;
-        
       case 'comedy':
         rawData = await fetchAnimeByGenre("Comedy", "POPULARITY_DESC");
         break;
-        
+      case 'drama':
+        rawData = await fetchAnimeByGenre("Drama", "POPULARITY_DESC");
+        break;
       case 'horror':
         rawData = await fetchAnimeByGenre("Horror", "POPULARITY_DESC");
         break;
+      case 'mystery':
+        rawData = await fetchAnimeByGenre("Mystery", "POPULARITY_DESC");
+        break;
+      case 'thriller':
+        rawData = await fetchAnimeByGenre("Thriller", "POPULARITY_DESC");
+        break;
 
+      // TEMÁTICAS ESPECÍFICAS
+      case 'isekai':
+        rawData = await fetchAnimeByGenre("Adventure", "POPULARITY_DESC");
+        break;
+      case 'mecha':
+        rawData = await fetchAnimeByGenre("Mecha", "POPULARITY_DESC");
+        break;
+      case 'slice_of_life':
+        rawData = await fetchAnimeByGenre("Slice of Life", "POPULARITY_DESC");
+        break;
+      case 'sports':
+        rawData = await fetchAnimeByGenre("Sports", "POPULARITY_DESC");
+        break;
+      case 'music':
+        rawData = await fetchAnimeByGenre("Music", "POPULARITY_DESC");
+        break;
+      case 'school':
+        rawData = await fetchAnimeByGenre("School", "POPULARITY_DESC");
+        break;
+      case 'magical_girl':
+        rawData = await fetchAnimeByGenre("Mahou Shoujo", "POPULARITY_DESC");
+        break;
+      case 'harem':
+        rawData = await fetchAnimeByGenre("Harem", "POPULARITY_DESC");
+        break;
+      case 'reverse_harem':
+        rawData = await fetchAnimeByGenre("Reverse Harem", "POPULARITY_DESC");
+        break;
+
+      // ÉPOCA Y ESTILO
+      case 'classics':
+        rawData = await fetchAnimeByYear(1980, "POPULARITY_DESC");
+        break;
+      case 'modern':
+        rawData = await fetchAnimeByYear(2000, "POPULARITY_DESC");
+        break;
+      case 'current':
+        rawData = await fetchAnimeByYear(2015, "POPULARITY_DESC");
+        break;
+      case 'retro':
+        rawData = await fetchAnimeByYear(1970, "POPULARITY_DESC");
+        break;
+      case 'vintage':
+        rawData = await fetchAnimeByYear(1960, "POPULARITY_DESC");
+        break;
+
+      // FORMATOS
+      case 'tv_series':
+        rawData = await fetchAnimeByFormat("TV", "POPULARITY_DESC");
+        break;
+      case 'movies':
+        rawData = await fetchAnimeByFormat("MOVIE", "POPULARITY_DESC");
+        break;
+      case 'ovas':
+        rawData = await fetchAnimeByFormat("OVA", "POPULARITY_DESC");
+        break;
+      case 'specials':
+        rawData = await fetchAnimeByFormat("SPECIAL", "POPULARITY_DESC");
+        break;
+      case 'shorts':
+        rawData = await fetchAnimeByFormat("ONA", "POPULARITY_DESC");
+        break;
+
+      // ESTADO DE EMISIÓN
       case 'airing':
         rawData = await fetchAnimeByStatus("RELEASING", "POPULARITY_DESC");
         break;
-        
       case 'upcoming':
         rawData = await fetchAnimeByStatus("NOT_YET_RELEASED", "POPULARITY_DESC");
         break;
-        
+      case 'finished':
+        rawData = await fetchAnimeByStatus("FINISHED", "POPULARITY_DESC");
+        break;
       case 'top_rated':
         rawData = await fetchTopRatedAnime();
         break;
-        
       case 'popular':
         rawData = await fetchPopularAnime();
         break;
-        
-      case 'classics':
-        rawData = await fetchAnimeByStatus("FINISHED", "START_DATE_DESC");
-        break;
-        
       case 'trending':
         rawData = await fetchTrendingAnime();
+        break;
+
+      // ESTILOS VISUALES
+      case 'shinkai':
+        rawData = await fetchAnimeByGenre("Drama", "POPULARITY_DESC");
+        break;
+      case 'ghibli':
+        rawData = await fetchAnimeByGenre("Fantasy", "POPULARITY_DESC");
+        break;
+      case 'retro_style':
+        rawData = await fetchAnimeByYear(1990, "POPULARITY_DESC");
+        break;
+      case 'cg':
+        rawData = await fetchAnimeByGenre("Action", "POPULARITY_DESC");
+        break;
+      case 'traditional':
+        rawData = await fetchAnimeByYear(1980, "POPULARITY_DESC");
+        break;
+
+      // TEMPORADAS
+      case 'winter_2024':
+        rawData = await fetchAnimeBySeason(2024, "WINTER");
+        break;
+      case 'spring_2024':
+        rawData = await fetchAnimeBySeason(2024, "SPRING");
+        break;
+      case 'summer_2024':
+        rawData = await fetchAnimeBySeason(2024, "SUMMER");
+        break;
+      case 'fall_2024':
+        rawData = await fetchAnimeBySeason(2024, "FALL");
         break;
 
       default:
