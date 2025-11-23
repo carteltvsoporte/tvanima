@@ -1,17 +1,29 @@
 const CONFIG = {
   ANILIST_API_KEY: 'cdf9b6a0255cebc133ce4d9aaaee8d6d',
+  KITSU_API_KEY: 'kitsu_api_key_placeholder',
+  JIKAN_API_KEY: 'jikan_api_key_placeholder',
   BASE_URL: 'https://graphql.anilist.co',
+  KITSU_URL: 'https://kitsu.io/api/edge',
+  JIKAN_URL: 'https://api.jikan.moe/v4',
   IMG_BASE_URL: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/',
+  TRANSLATION_API: 'https://api.mymemory.translated.net/get',
   MAX_RETRIES: 3,
   INITIAL_DELAY: 1000,
-  CACHE_DURATION: 15 * 60 * 1000
+  CACHE_DURATION: 15 * 60 * 1000,
+  API_ROTATION_INTERVAL: 5
 };
 
 const AUTHORIZED_USERS = [
-  { name: "ms", phone: "50369270" },
-  { name: "naruto", phone: "2345678901" },
-  { name: "goku", phone: "3456789012" },
-  { name: "luffy", phone: "4567890123" },
+  { name: "Marcos", phone: "+5350369270", password: "TVANIMA" },
+  { name: "naruto", phone: "2345678901", password: "hokage123" },
+  { name: "goku", phone: "3456789012", password: "kamehameha" },
+  { name: "luffy", phone: "4567890123", password: "onepiece" },
+  { name: "saitama", phone: "5678901234", password: "onepunch" },
+  { name: "levi", phone: "6789012345", password: "cleanfreak" },
+  { name: "nezuko", phone: "7890123456", password: "demonslayer" },
+  { name: "yor", phone: "8901234567", password: "assassin" },
+  { name: "gojo", phone: "9012345678", password: "infinity" },
+  { name: "mai", phone: "0123456789", password: "sakurajima" }
 ];
 
 const State = {
@@ -27,63 +39,81 @@ const State = {
   settings: JSON.parse(localStorage.getItem('anima_settings')) || {
     theme: 'sakura',
     contentQuality: 'balanced',
-    includeAniList: true
+    includeAniList: true,
+    translationEnabled: false,
+    translationLanguage: 'en'
   },
-  isOnline: navigator.onLine
+  isOnline: navigator.onLine,
+  apiUsageCount: 0,
+  currentApi: 'anilist'
 };
 
 function setupAccessModal() {
   const accessModal = document.getElementById('access-modal');
   const userNameInput = document.getElementById('user-name');
   const userPhoneInput = document.getElementById('user-phone');
+  const accessCodeInput = document.getElementById('access-code');
   const submitButton = document.getElementById('submit-code');
+  const registerButton = document.getElementById('register-btn');
   const errorMessage = document.getElementById('error-message');
-
-  // Verificar si ya tiene acceso
-  if (localStorage.getItem('anima_access_granted') === 'true') {
+  
+  const hasAccess = localStorage.getItem('anima_access_granted');
+  if (hasAccess === 'true') {
     accessModal.classList.add('hidden');
     document.getElementById('main-app').classList.remove('hidden');
     return;
   }
-
-  function validateAccess() {
-    const name = userNameInput.value.trim().toLowerCase();
-    const phone = userPhoneInput.value.trim();
-
-    // Buscar usuario válido
-    const validUser = AUTHORIZED_USERS.find(user => 
-      user.name === name && 
-      user.phone === phone
+  
+  submitButton.addEventListener('click', () => {
+    const enteredName = userNameInput.value.trim().toLowerCase();
+    const enteredPhone = userPhoneInput.value.trim();
+    const enteredPassword = accessCodeInput.value.trim();
+    
+    const isValidUser = AUTHORIZED_USERS.some(user => 
+      user.name === enteredName && 
+      user.phone === enteredPhone && 
+      user.password === enteredPassword
     );
-
-    if (validUser) {
-      // Acceso concedido
+    
+    if (isValidUser) {
       localStorage.setItem('anima_access_granted', 'true');
-      localStorage.setItem('anima_current_user', name);
+      localStorage.setItem('anima_current_user', enteredName);
       accessModal.classList.add('hidden');
       document.getElementById('main-app').classList.remove('hidden');
-      showNotification(`¡Bienvenido/a ${name} a TV ANIMA!`);
+      showNotification(`¡Bienvenido/a ${enteredName} a TV ANIMA!`);
     } else {
-      // Credenciales incorrectas
       errorMessage.classList.remove('hidden');
       userNameInput.value = '';
       userPhoneInput.value = '';
+      accessCodeInput.value = '';
       userNameInput.focus();
     }
-  }
-
-  // Event listeners simplificados
-  submitButton.addEventListener('click', validateAccess);
-
-  // Permitir enviar con Enter en cualquier campo
-  [userNameInput, userPhoneInput].forEach(input => {
+  });
+  
+  registerButton.addEventListener('click', () => {
+    const userName = userNameInput.value.trim();
+    const userPhone = userPhoneInput.value.trim();
+    
+    if (!userName || !userPhone) {
+      showNotification('Por favor, completa nombre y teléfono para solicitar inscripción', 5000);
+      return;
+    }
+    
+    const subject = 'Solicitud de Inscripción - TV ANIMA';
+    const body = `Nombre: ${userName}%0ATeléfono: ${userPhone}%0A%0ASolicito acceso a la plataforma TV ANIMA.`;
+    const mailtoLink = `mailto:carteltv.soporte@gmail.com?subject=${subject}&body=${body}`;
+    
+    window.open(mailtoLink, '_blank');
+    showNotification('Redirigiendo a Gmail para enviar solicitud...', 3000);
+  });
+  
+  [userNameInput, userPhoneInput, accessCodeInput].forEach(input => {
     input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') validateAccess();
+      if (e.key === 'Enter') {
+        submitButton.click();
+      }
     });
   });
-
-  // Enfocar el primer campo automáticamente
-  userNameInput.focus();
 }
 
 function setupTheme() {
@@ -145,17 +175,49 @@ function setupSettings() {
     anilistToggle.checked = State.settings.includeAniList;
     anilistToggle.addEventListener('change', saveSettings);
   }
+  
+  const translationToggle = document.getElementById('translation-toggle');
+  const translationLanguage = document.getElementById('translation-language');
+  
+  if (translationToggle) {
+    translationToggle.checked = State.settings.translationEnabled;
+    translationToggle.addEventListener('change', saveSettings);
+  }
+  
+  if (translationLanguage) {
+    translationLanguage.value = State.settings.translationLanguage;
+    translationLanguage.addEventListener('change', saveSettings);
+  }
 }
 
 function saveSettings() {
   State.settings = {
     theme: document.querySelector('input[name="theme"]:checked')?.value || 'sakura',
     contentQuality: document.getElementById('content-quality')?.value || 'balanced',
-    includeAniList: document.getElementById('anilist-toggle')?.checked || true
+    includeAniList: document.getElementById('anilist-toggle')?.checked || true,
+    translationEnabled: document.getElementById('translation-toggle')?.checked || false,
+    translationLanguage: document.getElementById('translation-language')?.value || 'en'
   };
   
   localStorage.setItem('anima_settings', JSON.stringify(State.settings));
   applyTheme(State.settings.theme);
+}
+
+async function translateText(text, targetLang) {
+  if (!State.settings.translationEnabled || !text) return text;
+  
+  try {
+    const response = await fetch(`${CONFIG.TRANSLATION_API}?q=${encodeURIComponent(text)}&langpair=es|${targetLang}`);
+    const data = await response.json();
+    
+    if (data.responseStatus === 200) {
+      return data.responseData.translatedText;
+    }
+    return text;
+  } catch (error) {
+    console.error('Translation error:', error);
+    return text;
+  }
 }
 
 function setupNavigation() {
@@ -471,6 +533,19 @@ function cleanup() {
   }
 }
 
+function rotateAPI() {
+  State.apiUsageCount++;
+  
+  if (State.apiUsageCount >= CONFIG.API_ROTATION_INTERVAL) {
+    State.apiUsageCount = 0;
+    const apis = ['anilist', 'jikan'];
+    const currentIndex = apis.indexOf(State.currentApi);
+    State.currentApi = apis[(currentIndex + 1) % apis.length];
+  }
+  
+  return State.currentApi;
+}
+
 async function fetchWithRetry(query, variables = {}, retries = CONFIG.MAX_RETRIES, delay = CONFIG.INITIAL_DELAY) {
   for (let i = 0; i <= retries; i++) {
     try {
@@ -510,7 +585,72 @@ async function fetchWithRetry(query, variables = {}, retries = CONFIG.MAX_RETRIE
   }
 }
 
+async function fetchJikanAnime(searchType, value) {
+  try {
+    let url = '';
+    
+    switch(searchType) {
+      case 'genre':
+        url = `${CONFIG.JIKAN_URL}/anime?genres=${value}&order_by=popularity&sort=desc&limit=50`;
+        break;
+      case 'status':
+        url = `${CONFIG.JIKAN_URL}/anime?status=${value}&order_by=popularity&sort=desc&limit=50`;
+        break;
+      case 'top':
+        url = `${CONFIG.JIKAN_URL}/top/anime?limit=50`;
+        break;
+      default:
+        url = `${CONFIG.JIKAN_URL}/anime?q=${value}&order_by=popularity&sort=desc&limit=50`;
+    }
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    return data.data.map(item => ({
+      id: item.mal_id,
+      title: {
+        romaji: item.title,
+        english: item.title_english,
+        native: item.title_japanese
+      },
+      description: item.synopsis,
+      startDate: {
+        year: item.year
+      },
+      coverImage: {
+        large: item.images?.jpg?.large_image_url,
+        medium: item.images?.jpg?.image_url
+      },
+      episodes: item.episodes,
+      genres: item.genres?.map(g => g.name) || [],
+      averageScore: item.score,
+      popularity: item.popularity,
+      status: item.status,
+      format: item.type,
+      source: 'jikan'
+    }));
+  } catch (error) {
+    console.error('Jikan API error:', error);
+    return [];
+  }
+}
+
 async function fetchAnimeByGenre(genre, sort = "POPULARITY_DESC") {
+  const currentApi = rotateAPI();
+  
+  if (currentApi === 'jikan') {
+    const genreMap = {
+      'Action': 1, 'Adventure': 2, 'Comedy': 4, 'Drama': 8, 
+      'Fantasy': 10, 'Horror': 14, 'Mecha': 18, 'Romance': 22,
+      'Sci-Fi': 24, 'Slice of Life': 36
+    };
+    
+    const genreId = genreMap[genre];
+    if (genreId) {
+      return await fetchJikanAnime('genre', genreId);
+    }
+  }
+  
   const query = `
     query ($genre: String, $sort: [MediaSort]) {
       Page(page: 1, perPage: 50) {
@@ -558,6 +698,21 @@ async function fetchAnimeByGenre(genre, sort = "POPULARITY_DESC") {
 }
 
 async function fetchAnimeByStatus(status, sort = "POPULARITY_DESC") {
+  const currentApi = rotateAPI();
+  
+  if (currentApi === 'jikan') {
+    const statusMap = {
+      'RELEASING': 'airing',
+      'NOT_YET_RELEASED': 'upcoming',
+      'FINISHED': 'complete'
+    };
+    
+    const jikanStatus = statusMap[status];
+    if (jikanStatus) {
+      return await fetchJikanAnime('status', jikanStatus);
+    }
+  }
+  
   const query = `
     query ($status: MediaStatus, $sort: [MediaSort]) {
       Page(page: 1, perPage: 50) {
@@ -604,101 +759,13 @@ async function fetchAnimeByStatus(status, sort = "POPULARITY_DESC") {
   return data.Page.media;
 }
 
-async function fetchAnimeByFormat(format, sort = "POPULARITY_DESC") {
-  const query = `
-    query ($format: MediaFormat, $sort: [MediaSort]) {
-      Page(page: 1, perPage: 50) {
-        media(type: ANIME, format: $format, sort: $sort) {
-          id
-          title {
-            romaji
-            english
-            native
-          }
-          description
-          startDate {
-            year
-            month
-            day
-          }
-          endDate {
-            year
-            month
-            day
-          }
-          coverImage {
-            large
-            medium
-          }
-          bannerImage
-          episodes
-          genres
-          averageScore
-          popularity
-          status
-          format
-        }
-      }
-    }
-  `;
-  
-  const variables = {
-    format: format,
-    sort: sort
-  };
-  
-  const data = await fetchWithRetry(query, variables);
-  return data.Page.media;
-}
-
-async function fetchAnimeByYear(year, sort = "POPULARITY_DESC") {
-  const query = `
-    query ($year: Int, $sort: [MediaSort]) {
-      Page(page: 1, perPage: 50) {
-        media(type: ANIME, startDate_greater: $year, startDate_lesser: ${year + 10}, sort: $sort) {
-          id
-          title {
-            romaji
-            english
-            native
-          }
-          description
-          startDate {
-            year
-            month
-            day
-          }
-          endDate {
-            year
-            month
-            day
-          }
-          coverImage {
-            large
-            medium
-          }
-          bannerImage
-          episodes
-          genres
-          averageScore
-          popularity
-          status
-          format
-        }
-      }
-    }
-  `;
-  
-  const variables = {
-    year: year,
-    sort: sort
-  };
-  
-  const data = await fetchWithRetry(query, variables);
-  return data.Page.media;
-}
-
 async function fetchTrendingAnime() {
+  const currentApi = rotateAPI();
+  
+  if (currentApi === 'jikan') {
+    return await fetchJikanAnime('top');
+  }
+  
   const query = `
     query {
       Page(page: 1, perPage: 50) {
@@ -741,6 +808,12 @@ async function fetchTrendingAnime() {
 }
 
 async function fetchPopularAnime() {
+  const currentApi = rotateAPI();
+  
+  if (currentApi === 'jikan') {
+    return await fetchJikanAnime('top');
+  }
+  
   const query = `
     query {
       Page(page: 1, perPage: 50) {
@@ -783,6 +856,12 @@ async function fetchPopularAnime() {
 }
 
 async function fetchTopRatedAnime() {
+  const currentApi = rotateAPI();
+  
+  if (currentApi === 'jikan') {
+    return await fetchJikanAnime('top');
+  }
+  
   const query = `
     query {
       Page(page: 1, perPage: 50) {
@@ -824,53 +903,6 @@ async function fetchTopRatedAnime() {
   return data.Page.media;
 }
 
-async function fetchAnimeBySeason(year, season) {
-  const query = `
-    query ($year: Int, $season: MediaSeason) {
-      Page(page: 1, perPage: 50) {
-        media(type: ANIME, season: $season, seasonYear: $year, sort: POPULARITY_DESC) {
-          id
-          title {
-            romaji
-            english
-            native
-          }
-          description
-          startDate {
-            year
-            month
-            day
-          }
-          endDate {
-            year
-            month
-            day
-          }
-          coverImage {
-            large
-            medium
-          }
-          bannerImage
-          episodes
-          genres
-          averageScore
-          popularity
-          status
-          format
-        }
-      }
-    }
-  `;
-  
-  const variables = {
-    year: year,
-    season: season
-  };
-  
-  const data = await fetchWithRetry(query, variables);
-  return data.Page.media;
-}
-
 async function fetchContentByType(type) {
   const now = Date.now();
   const cacheValid = State.cache[type]?.length > 0 && now < State.cacheExpiry[type];
@@ -883,167 +915,80 @@ async function fetchContentByType(type) {
 
   try {
     switch (type) {
-      // DEMOGRÁFICOS
       case 'shonen':
         rawData = await fetchAnimeByGenre("Action", "POPULARITY_DESC");
         break;
+        
       case 'shojo':
         rawData = await fetchAnimeByGenre("Romance", "POPULARITY_DESC");
         break;
+        
       case 'seinen':
         rawData = await fetchAnimeByGenre("Drama", "POPULARITY_DESC");
         break;
+        
       case 'josei':
         rawData = await fetchAnimeByGenre("Slice of Life", "POPULARITY_DESC");
         break;
+        
       case 'kodomomuke':
         rawData = await fetchAnimeByGenre("Comedy", "POPULARITY_DESC");
         break;
 
-      // GÉNEROS PRINCIPALES
-      case 'action':
-        rawData = await fetchAnimeByGenre("Action", "POPULARITY_DESC");
-        break;
-      case 'adventure':
-        rawData = await fetchAnimeByGenre("Adventure", "POPULARITY_DESC");
-        break;
-      case 'fantasy':
-        rawData = await fetchAnimeByGenre("Fantasy", "POPULARITY_DESC");
-        break;
-      case 'sci_fi':
-        rawData = await fetchAnimeByGenre("Sci-Fi", "POPULARITY_DESC");
-        break;
-      case 'romance':
-        rawData = await fetchAnimeByGenre("Romance", "POPULARITY_DESC");
-        break;
-      case 'comedy':
-        rawData = await fetchAnimeByGenre("Comedy", "POPULARITY_DESC");
-        break;
-      case 'drama':
-        rawData = await fetchAnimeByGenre("Drama", "POPULARITY_DESC");
-        break;
-      case 'horror':
-        rawData = await fetchAnimeByGenre("Horror", "POPULARITY_DESC");
-        break;
-      case 'mystery':
-        rawData = await fetchAnimeByGenre("Mystery", "POPULARITY_DESC");
-        break;
-      case 'thriller':
-        rawData = await fetchAnimeByGenre("Thriller", "POPULARITY_DESC");
-        break;
-
-      // TEMÁTICAS ESPECÍFICAS
       case 'isekai':
         rawData = await fetchAnimeByGenre("Adventure", "POPULARITY_DESC");
         break;
+        
       case 'mecha':
         rawData = await fetchAnimeByGenre("Mecha", "POPULARITY_DESC");
         break;
+        
       case 'slice_of_life':
         rawData = await fetchAnimeByGenre("Slice of Life", "POPULARITY_DESC");
         break;
-      case 'sports':
-        rawData = await fetchAnimeByGenre("Sports", "POPULARITY_DESC");
+        
+      case 'fantasy':
+        rawData = await fetchAnimeByGenre("Fantasy", "POPULARITY_DESC");
         break;
-      case 'music':
-        rawData = await fetchAnimeByGenre("Music", "POPULARITY_DESC");
+        
+      case 'sci_fi':
+        rawData = await fetchAnimeByGenre("Sci-Fi", "POPULARITY_DESC");
         break;
-      case 'school':
-        rawData = await fetchAnimeByGenre("School", "POPULARITY_DESC");
+        
+      case 'romance':
+        rawData = await fetchAnimeByGenre("Romance", "POPULARITY_DESC");
         break;
-      case 'magical_girl':
-        rawData = await fetchAnimeByGenre("Mahou Shoujo", "POPULARITY_DESC");
+        
+      case 'comedy':
+        rawData = await fetchAnimeByGenre("Comedy", "POPULARITY_DESC");
         break;
-      case 'harem':
-        rawData = await fetchAnimeByGenre("Harem", "POPULARITY_DESC");
-        break;
-      case 'reverse_harem':
-        rawData = await fetchAnimeByGenre("Reverse Harem", "POPULARITY_DESC");
-        break;
-
-      // ÉPOCA Y ESTILO
-      case 'classics':
-        rawData = await fetchAnimeByYear(1980, "POPULARITY_DESC");
-        break;
-      case 'modern':
-        rawData = await fetchAnimeByYear(2000, "POPULARITY_DESC");
-        break;
-      case 'current':
-        rawData = await fetchAnimeByYear(2015, "POPULARITY_DESC");
-        break;
-      case 'retro':
-        rawData = await fetchAnimeByYear(1970, "POPULARITY_DESC");
-        break;
-      case 'vintage':
-        rawData = await fetchAnimeByYear(1960, "POPULARITY_DESC");
+        
+      case 'horror':
+        rawData = await fetchAnimeByGenre("Horror", "POPULARITY_DESC");
         break;
 
-      // FORMATOS
-      case 'tv_series':
-        rawData = await fetchAnimeByFormat("TV", "POPULARITY_DESC");
-        break;
-      case 'movies':
-        rawData = await fetchAnimeByFormat("MOVIE", "POPULARITY_DESC");
-        break;
-      case 'ovas':
-        rawData = await fetchAnimeByFormat("OVA", "POPULARITY_DESC");
-        break;
-      case 'specials':
-        rawData = await fetchAnimeByFormat("SPECIAL", "POPULARITY_DESC");
-        break;
-      case 'shorts':
-        rawData = await fetchAnimeByFormat("ONA", "POPULARITY_DESC");
-        break;
-
-      // ESTADO DE EMISIÓN
       case 'airing':
         rawData = await fetchAnimeByStatus("RELEASING", "POPULARITY_DESC");
         break;
+        
       case 'upcoming':
         rawData = await fetchAnimeByStatus("NOT_YET_RELEASED", "POPULARITY_DESC");
         break;
-      case 'finished':
-        rawData = await fetchAnimeByStatus("FINISHED", "POPULARITY_DESC");
-        break;
+        
       case 'top_rated':
         rawData = await fetchTopRatedAnime();
         break;
+        
       case 'popular':
         rawData = await fetchPopularAnime();
         break;
+        
+      case 'classics':
+        rawData = await fetchAnimeByStatus("FINISHED", "START_DATE_DESC");
+        break;
+        
       case 'trending':
         rawData = await fetchTrendingAnime();
-        break;
-
-      // ESTILOS VISUALES
-      case 'shinkai':
-        rawData = await fetchAnimeByGenre("Drama", "POPULARITY_DESC");
-        break;
-      case 'ghibli':
-        rawData = await fetchAnimeByGenre("Fantasy", "POPULARITY_DESC");
-        break;
-      case 'retro_style':
-        rawData = await fetchAnimeByYear(1990, "POPULARITY_DESC");
-        break;
-      case 'cg':
-        rawData = await fetchAnimeByGenre("Action", "POPULARITY_DESC");
-        break;
-      case 'traditional':
-        rawData = await fetchAnimeByYear(1980, "POPULARITY_DESC");
-        break;
-
-      // TEMPORADAS
-      case 'winter_2024':
-        rawData = await fetchAnimeBySeason(2024, "WINTER");
-        break;
-      case 'spring_2024':
-        rawData = await fetchAnimeBySeason(2024, "SPRING");
-        break;
-      case 'summer_2024':
-        rawData = await fetchAnimeBySeason(2024, "SUMMER");
-        break;
-      case 'fall_2024':
-        rawData = await fetchAnimeBySeason(2024, "FALL");
         break;
 
       default:
@@ -1073,7 +1018,7 @@ async function getContentByType(type) {
   return items;
 }
 
-function renderContent(item) {
+async function renderContent(item) {
   const container = document.getElementById('anime-container');
   if (!container) return;
   
@@ -1083,7 +1028,11 @@ function renderContent(item) {
   img.className = 'anime-poster';
   img.src = item.coverImage.large;
   
-  const title = item.title.romaji || item.title.english || item.title.native;
+  let title = item.title.romaji || item.title.english || item.title.native;
+  if (State.settings.translationEnabled) {
+    title = await translateText(title, State.settings.translationLanguage);
+  }
+  
   img.alt = `Póster de ${title}`;
   img.loading = 'lazy';
   img.onerror = () => {
@@ -1099,7 +1048,13 @@ function renderContent(item) {
 
   const overview = document.createElement('p');
   overview.className = 'anime-overview';
-  overview.textContent = item.description?.replace(/<[^>]*>/g, '') || 'Sin descripción disponible.';
+  let description = item.description?.replace(/<[^>]*>/g, '') || 'Sin descripción disponible.';
+  
+  if (State.settings.translationEnabled) {
+    description = await translateText(description, State.settings.translationLanguage);
+  }
+  
+  overview.textContent = description;
 
   container.appendChild(img);
   container.appendChild(titleElement);
@@ -1107,10 +1062,13 @@ function renderContent(item) {
   if (item.episodes) {
     const episodeInfo = document.createElement('div');
     episodeInfo.className = 'episode-info';
-    episodeInfo.innerHTML = `
-      <strong>Episodios:</strong> ${item.episodes} | 
-      <strong>Puntuación:</strong> ${item.averageScore || 'N/A'}%
-    `;
+    let episodeText = `<strong>Episodios:</strong> ${item.episodes} | <strong>Puntuación:</strong> ${item.averageScore || 'N/A'}%`;
+    
+    if (State.settings.translationEnabled) {
+      episodeText = await translateText(episodeText, State.settings.translationLanguage);
+    }
+    
+    episodeInfo.innerHTML = episodeText;
     container.appendChild(episodeInfo);
   }
   
@@ -1157,7 +1115,7 @@ async function loadContent() {
     const items = await getContentByType(State.currentType);
     if (items.length > 0) {
       const randomIndex = Math.floor(Math.random() * items.length);
-      renderContent(items[randomIndex]);
+      await renderContent(items[randomIndex]);
       showNotification('¡Anime cargado correctamente!');
     } else {
       renderError('No se encontró anime en esta categoría');

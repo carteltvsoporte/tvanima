@@ -146,6 +146,29 @@ body {
   transform: translateY(-2px);
 }
 
+.register-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.register-section p {
+  margin-bottom: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.register-btn {
+  background: transparent !important;
+  border: 1px solid var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+.register-btn:hover {
+  background: var(--primary) !important;
+  color: white !important;
+}
+
 .error {
   color: var(--error);
   margin-top: 0.5rem;
@@ -833,6 +856,17 @@ input[type="checkbox"]:checked + .toggle-slider::before {
 .history-time {
   color: var(--text-muted);
   font-size: 0.8rem;
+}
+
+.error-content {
+  text-align: center;
+  padding: 2rem;
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: var(--error);
 }
 
 @media (max-width: 768px) {
