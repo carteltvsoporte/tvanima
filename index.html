@@ -1,261 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TV ANIMA</title>
-  <meta name="description" content="Descubre anime organizado por categorías y géneros" />
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="TVANIMA.jpeg" type="image/jpeg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TVANIMA - No Disponible</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+body{background:#f5f5f5;height:100vh;display:flex;justify-content:center;align-items:center;color:#333;text-align:center}
+.container{background:#fff;padding:30px;border-radius:8px;max-width:500px;width:90%;box-shadow:0 2px 10px rgba(0,0,0,0.1);border:1px solid #ddd}
+h1{font-size:1.8rem;margin-bottom:15px;color:#d32f2f}
+.logo{font-size:2.2rem;font-weight:bold;margin-bottom:15px;color:#d32f2f}
+p{font-size:1rem;margin-bottom:20px;line-height:1.5}
+.redirect-info{background:#f9f9f9;padding:12px;border-radius:6px;margin:20px 0;border-left:4px solid #d32f2f}
+.ctvp-link{display:inline-block;background:#d32f2f;color:#fff;padding:10px 25px;font-size:1rem;font-weight:bold;text-decoration:none;border-radius:4px;margin-top:10px;cursor:pointer;border:none}
+.countdown{font-size:1.1rem;margin-top:15px;color:#d32f2f;font-weight:bold}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1000;justify-content:center;align-items:center}
+.modal-content{background:#fff;padding:25px;border-radius:8px;max-width:400px;width:90%;text-align:center;position:relative}
+.modal-logo{font-size:1.8rem;font-weight:bold;margin-bottom:15px;color:#d32f2f}
+.modal h2{margin-bottom:15px;color:#d32f2f}
+.modal-buttons{display:flex;justify-content:center;gap:10px;margin-top:15px}
+.modal-btn{padding:8px 20px;border:none;border-radius:4px;font-size:0.9rem;font-weight:bold;cursor:pointer}
+.modal-btn.primary{background:#d32f2f;color:#fff}
+.modal-btn.secondary{background:#e0e0e0;color:#333}
+.close-modal{position:absolute;top:10px;right:10px;background:none;border:none;color:#333;font-size:1.2rem;cursor:pointer}
+@media (max-width:480px){.container{padding:20px}h1{font-size:1.5rem}.logo{font-size:1.8rem}.modal-buttons{flex-direction:column}}
+</style>
 </head>
 <body>
-  <div id="access-modal" class="modal">
-    <div class="modal-content">
-      <h2>Acceso TVANIMA</h2>
-      <p>Ingrese sus credenciales para continuar:</p>
-      
-      <div class="form-group">
-        <input type="text" id="user-name" placeholder="Nombre de usuario" />
-      </div>
-      
-      <div class="form-group">
-        <input type="tel" id="user-phone" placeholder="Número móvil" />
-      </div>
-      
-      <div class="form-group">
-        <input type="password" id="access-code" placeholder="Contraseña" />
-      </div>
-      
-      <button id="submit-code">Acceder</button>
-      <p id="error-message" class="error hidden">Credenciales incorrectas. Intente nuevamente.</p>
-      
-      <div class="register-section">
-        <p>¿No tienes cuenta?</p>
-        <button id="register-btn" class="register-btn">Solicitar Inscripción</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="notification" class="notification hidden">
-    <span id="notification-text"></span>
-    <button id="notification-close" class="notification-close">×</button>
-  </div>
-
-  <div class="container">
-    <div id="main-app" class="main-app hidden">
-      
-      <header class="app-header">
-        <div class="header-content">
-          <div class="header-left">
-            <button id="menu-btn" class="menu-btn">
-              <span></span>
-              <span></span>
-              <span></span>
-            </button>
-            <div class="logo">
-              <img src="TVANIMA.jpeg" alt="TVANIMA" class="logo-img">
-              <span class="logo-text">TVANIMA</span>
-            </div>
-          </div>
-          
-          <div class="header-actions">
-            <button id="theme-toggle" class="theme-toggle">
-              <span class="theme-icon">🌸</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <nav id="side-menu" class="side-menu">
-        <div class="menu-header">
-          <h3>Navegación</h3>
-          <button id="close-menu" class="close-menu">×</button>
-        </div>
-        <div class="menu-items">
-          <a href="#" class="menu-item active" data-section="discover">🔍 Descubrir</a>
-          <a href="#" class="menu-item" data-section="favorites">❤️ Favoritos</a>
-          <a href="#" class="menu-item" data-section="watchlist">📝 Por Ver</a>
-          <a href="#" class="menu-item" data-section="history">🕒 Historial</a>
-          <a href="#" class="menu-item" data-section="settings">⚙️ Configuración</a>
-        </div>
-        <div class="menu-footer">
-          <div class="user-stats">
-            <div class="stat">
-              <span class="stat-number" id="fav-count">0</span>
-              <span class="stat-label">Favoritos</span>
-            </div>
-            <div class="stat">
-              <span class="stat-number" id="watch-count">0</span>
-              <span class="stat-label">Por Ver</span>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <div class="content-sections">
-        
-        <section id="discover" class="content-section active">
-          <div class="filters-container">
-            <div class="filters-header">
-              <h2>CATEGORÍAS DE ANIME</h2>
-            </div>
-            
-            <div class="categories">
-              <div class="category-section">
-                <h3 class="category-title">🎌 Géneros Populares</h3>
-                <div class="filters">
-                  <button class="filter-btn active" data-type="shonen">Shonen</button>
-                  <button class="filter-btn" data-type="shojo">Shojo</button>
-                  <button class="filter-btn" data-type="seinen">Seinen</button>
-                  <button class="filter-btn" data-type="josei">Josei</button>
-                  <button class="filter-btn" data-type="kodomomuke">Kodomomuke</button>
-                </div>
-              </div>
-
-              <div class="category-section">
-                <h3 class="category-title">🎭 Temáticas</h3>
-                <div class="filters">
-                  <button class="filter-btn" data-type="isekai">Isekai</button>
-                  <button class="filter-btn" data-type="mecha">Mecha</button>
-                  <button class="filter-btn" data-type="slice_of_life">Slice of Life</button>
-                  <button class="filter-btn" data-type="fantasy">Fantasía</button>
-                  <button class="filter-btn" data-type="sci_fi">Ciencia Ficción</button>
-                  <button class="filter-btn" data-type="romance">Romance</button>
-                  <button class="filter-btn" data-type="comedy">Comedia</button>
-                  <button class="filter-btn" data-type="horror">Horror</button>
-                </div>
-              </div>
-
-              <div class="category-section">
-                <h3 class="category-title">📅 Estado</h3>
-                <div class="filters">
-                  <button class="filter-btn" data-type="airing">En Emisión</button>
-                  <button class="filter-btn" data-type="upcoming">Próximamente</button>
-                  <button class="filter-btn" data-type="top_rated">Mejor Valorados</button>
-                  <button class="filter-btn" data-type="popular">Populares</button>
-                  <button class="filter-btn" data-type="classics">Clásicos</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <button id="load-btn" class="action-btn">
-            <span class="btn-icon">🎬</span>
-            <span class="btn-text">Descubrir Anime</span>
-          </button>
-
-          <div id="loading" class="loading hidden">
-            <div class="loading-spinner"></div>
-            <span class="loading-message">Buscando en el mundo del anime...</span>
-          </div>
-
-          <div id="anime-container" class="anime-card">
-            <div class="welcome-message">
-              <div class="welcome-icon">🌸</div>
-              <h3>Bienvenido a TV ANIMA</h3>
-              <p>Selecciona una categoría y haz clic en "Descubrir Anime" para explorar</p>
-            </div>
-          </div>
-
-          <div class="content-actions">
-            <button id="favorite-btn" class="content-action-btn favorite-btn">❤️ Favorito</button>
-            <button id="watchlist-btn" class="content-action-btn watchlist-btn">📝 Por Ver</button>
-          </div>
-        </section>
-
-        <section id="favorites" class="content-section">
-          <div class="section-header">
-            <h2>Mis Animes Favoritos</h2>
-            <p>Tu colección personal de anime destacado</p>
-          </div>
-          <div id="favorites-grid" class="content-grid"></div>
-        </section>
-
-        <section id="watchlist" class="content-section">
-          <div class="section-header">
-            <h2>Mi Lista por Ver</h2>
-            <p>Anime guardado para ver más tarde</p>
-          </div>
-          <div id="watchlist-grid" class="content-grid"></div>
-        </section>
-
-        <section id="history" class="content-section">
-          <div class="section-header">
-            <h2>Historial</h2>
-            <p>Tu actividad reciente en TV ANIMA</p>
-          </div>
-          <div id="history-list" class="history-list"></div>
-        </section>
-
-        <section id="settings" class="content-section">
-          <div class="section-header">
-            <h2>Configuración</h2>
-            <p>Personaliza tu experiencia anime</p>
-          </div>
-          <div class="settings-grid">
-            <div class="setting-card">
-              <h3>🎨 Tema</h3>
-              <div class="setting-options">
-                <label class="setting-option">
-                  <input type="radio" name="theme" value="sakura" checked>
-                  <span class="option-label">Sakura</span>
-                </label>
-                <label class="setting-option">
-                  <input type="radio" name="theme" value="midnight">
-                  <span class="option-label">Medianoche</span>
-                </label>
-              </div>
-            </div>
-            
-            <div class="setting-card">
-              <h3>⚡ Calidad</h3>
-              <div class="setting-options">
-                <label class="setting-option">
-                  <select id="content-quality">
-                    <option value="high">Alta calidad</option>
-                    <option value="balanced" selected>Equilibrado</option>
-                    <option value="data">Modo ahorro</option>
-                  </select>
-                </label>
-              </div>
-            </div>
-
-            <div class="setting-card">
-              <h3>🌐 Traducción</h3>
-              <div class="setting-options">
-                <label class="setting-option toggle-option">
-                  <input type="checkbox" id="translation-toggle">
-                  <span class="toggle-slider"></span>
-                  <span class="option-label">Traducir textos</span>
-                </label>
-                <label class="setting-option">
-                  <select id="translation-language">
-                    <option value="en">Inglés</option>
-                    <option value="fr">Francés</option>
-                    <option value="pt">Portugués</option>
-                    <option value="it">Italiano</option>
-                    <option value="ja">Japonés</option>
-                  </select>
-                </label>
-              </div>
-            </div>
-
-            <div class="setting-card">
-              <h3>📺 Fuentes</h3>
-              <div class="setting-options">
-                <label class="setting-option toggle-option">
-                  <input type="checkbox" id="anilist-toggle" checked>
-                  <span class="toggle-slider"></span>
-                  <span class="option-label">Mas contenido</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+<div class="container">
+<div class="logo">TVANIMA</div>
+<h1>No Disponible</h1>
+<p>La plataforma TVANIMA ya no está disponible.</p>
+<div class="redirect-info">
+<p>TVANIMA DEJARÁ DE FUNCIONAR PERMANENTEMENTE, AHORA CTVP TENDRÁ CONTENIDO ANIME QUE NECESITAS VER</p>
+</div>
+<button id="openModal" class="ctvp-link">Ir a CTVP</button>
+<div class="countdown" id="countdown">Redirigiendo en 10 segundos...</div>
+</div>
+<div class="modal" id="redirectModal">
+<div class="modal-content">
+<button class="close-modal" id="closeModal">&times;</button>
+<div class="modal-logo">CTVP</div>
+<h2>Redirigiendo a CTVP</h2>
+<p>Serás redirigido a la página de CTVP</p>
+<div class="modal-buttons">
+<button class="modal-btn primary" id="confirmRedirect">Continuar</button>
+<button class="modal-btn secondary" id="cancelRedirect">Cancelar</button>
+</div>
+</div>
+</div>
+<script>
+const openModalBtn=document.getElementById('openModal');
+const modal=document.getElementById('redirectModal');
+const closeModalBtn=document.getElementById('closeModal');
+const confirmRedirectBtn=document.getElementById('confirmRedirect');
+const cancelRedirectBtn=document.getElementById('cancelRedirect');
+const countdownElement=document.getElementById('countdown');
+openModalBtn.addEventListener('click',function(){modal.style.display='flex'});
+closeModalBtn.addEventListener('click',function(){modal.style.display='none'});
+cancelRedirectBtn.addEventListener('click',function(){modal.style.display='none'});
+confirmRedirectBtn.addEventListener('click',function(){window.location.href="https://carteltvsoporte.github.io/ctvp/auth-modal.html"});
+window.addEventListener('click',function(event){if(event.target===modal){modal.style.display='none'}});
+let seconds=10;
+const countdown=setInterval(function(){seconds--;countdownElement.textContent=`Redirigiendo en ${seconds} segundos...`;if(seconds<=0){clearInterval(countdown);modal.style.display='flex'}},1000);
+</script>
 </body>
 </html>
